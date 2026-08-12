@@ -46,6 +46,24 @@ export default function PlanoAlimentarIA({
   // Regerar uma opção específica
   const [reloadingOption, setReloadingOption] = useState(null); // `${dayName}-${mealKey}-${optionIdx}`
 
+  // Carregar plano salvo do histórico automaticamente caso o plano atual não esteja carregado
+  React.useEffect(() => {
+    if (!currentPlan && planosHistorico && planosHistorico.length > 0) {
+      const latest = planosHistorico[0];
+      if (latest && latest.conteudo && latest.conteudo.plano_semanal) {
+        setCurrentPlan(latest.conteudo);
+        if (latest.conteudo.selections) {
+          setSelections(latest.conteudo.selections);
+        } else {
+          initializeSelections(latest.conteudo.plano_semanal);
+        }
+        if (latest.conteudo.completedMeals) {
+          setCompletedMeals(latest.conteudo.completedMeals);
+        }
+      }
+    }
+  }, [planosHistorico]);
+
   // Inicializar seleções padrões (Opção 0 para todas)
   const initializeSelections = (planoSemanal) => {
     const initSel = {};
@@ -329,6 +347,31 @@ export default function PlanoAlimentarIA({
         </div>
 
         <div className="plano-header-actions">
+          {planosHistorico && planosHistorico.length > 0 && (
+            <div className="historico-select-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '12px', color: 'var(--muted)', fontWeight: '600' }}>Histórico:</span>
+              <select
+                className="form-input no-icon"
+                style={{ padding: '6px 10px', fontSize: '12px', width: 'auto', background: '#FAFAFA' }}
+                onChange={(e) => {
+                  const selectedId = e.target.value;
+                  const found = planosHistorico.find(p => p.id === selectedId);
+                  if (found && found.conteudo) {
+                    setCurrentPlan(found.conteudo);
+                    if (found.conteudo.selections) setSelections(found.conteudo.selections);
+                    if (found.conteudo.completedMeals) setCompletedMeals(found.conteudo.completedMeals);
+                  }
+                }}
+              >
+                {planosHistorico.map((p, idx) => (
+                  <option key={p.id} value={p.id}>
+                    Plano #{planosHistorico.length - idx} ({new Date(p.created_at).toLocaleDateString('pt-BR')})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {currentPlan && (
             <button
               className="btn-save"
