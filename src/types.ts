@@ -53,3 +53,16 @@ export interface PlanoAlimentarDB {
   conteudo: PlanoAlimentarJSON;
   created_at: string;
 }
+
+export interface Consulta {
+  id: string;
+  paciente_id: string;
+  data_consulta: string;
+  peso: number;
+  cintura?: number | null;
+  quadril?: number | null;
+  percentual_gordura?: number | null;
+  observacoes?: string | null;
+  proximo_retorno?: string | null;
+  created_at?: string;
+}

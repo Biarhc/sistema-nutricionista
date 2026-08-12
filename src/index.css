@@ -1757,3 +1757,26 @@ body {
   left: 6px;
   top: -2px;
 }
+
+/* AI Button & Loading Animations */
+.btn-ai-sparkle {
+  background: linear-gradient(135deg, #8BA33E 0%, #6E852D 100%) !important;
+  box-shadow: 0 4px 14px rgba(139, 163, 62, 0.35);
+  transition: all 0.3s ease;
+}
+
+.btn-ai-sparkle:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 163, 62, 0.45);
+}
+
+@keyframes spinSparkle {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.15); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+.sparkle-spinning {
+  animation: spinSparkle 2s infinite ease-in-out;
+  color: var(--green);
+}

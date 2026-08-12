@@ -638,8 +638,8 @@ export default function PacienteDetalhes({ session }) {
               <circle cx={p.x} cy={p.y} r="5.5" fill="var(--green)" stroke="var(--white)" strokeWidth="2.5" />
               
               {/* Tooltip Weight Label */}
-              <rect x={p.x - 22} y={p.y - 25} width="44" height="18" rx="4" fill="var(--dark)" opacity="0.95" />
-              <text x={p.x} y={p.y - 13} fill="var(--white)" fontSize="9" fontWeight="700" textAnchor="middle">{p.peso}k</text>
+              <rect x={p.x - 24} y={p.y - 25} width="48" height="18" rx="4" fill="var(--dark)" opacity="0.95" />
+              <text x={p.x} y={p.y - 13} fill="var(--white)" fontSize="9" fontWeight="700" textAnchor="middle">{p.peso} kg</text>
               
               {/* X Axis labels */}
               <text x={p.x} y={height - 12} fill="var(--muted)" fontSize="9.5" fontWeight="600" textAnchor="middle">{p.label}</text>
