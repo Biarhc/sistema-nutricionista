@@ -6,6 +6,7 @@ import {
   Clock, Heart, AlertTriangle, Phone, Mail, Check, MessageSquare,
   User, Coffee, BookOpen, ExternalLink, ChevronRight, Sparkles
 } from 'lucide-react';
+import PlanoAlimentarIA from '../components/PlanoAlimentarIA';
 
 const OBJETIVOS_LIST = ['Emagrecer', 'Ganhar massa', 'Controlar diabetes', 'Saúde geral', 'Performance', 'Reeducação alimentar'];
 const NIVEIS_ATIVIDADE_LIST = ['Sedentário', 'Leve', 'Moderado', 'Muito ativo', 'Extremamente ativo'];
@@ -1158,283 +1159,45 @@ export default function PacienteDetalhes({ session }) {
 
       {/* ── SEÇÃO 3: PLANOS ALIMENTARES ── */}
       <section className="profile-section-card" style={{ marginTop: '32px' }}>
-        <div className="section-header">
-          <div className="title-area">
-            <h2>Seção 3 — Planos Alimentares</h2>
-            <p className="subtitle">Consulte o histórico de planos alimentares salvos ou gere uma nova prescrição.</p>
-          </div>
-          <div className="action-buttons-group">
-            {tempPlan ? (
-              <>
-                <button 
-                  className="btn-save" 
-                  onClick={handleSavePlan} 
-                  disabled={saving}
-                >
-                  <Save size={16} /> {saving ? 'Salvando...' : 'Salvar Plano Alimentar'}
-                </button>
-                <button 
-                  className="btn-secondary" 
-                  onClick={() => setTempPlan(null)}
-                >
-                  Cancelar Edição
-                </button>
-              </>
-            ) : (
-              <>
-                <button 
-                  className="btn-save btn-ai-sparkle" 
-                  onClick={handleGeneratePlanWithIA} 
-                  disabled={loadingIA}
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                >
-                  <Sparkles size={16} /> Gerar Plano com IA
-                </button>
-                <button 
-                  className="btn-save" 
-                  onClick={handleCreateManualPlan}
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                >
-                  <Plus size={16} /> Plano Manual
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Loading Visual do Gemini */}
-        {loadingIA && (
-          <div className="ai-loading-container animate-fade-in">
-            <div className="ai-loading-spinner">
-              <Sparkles size={32} className="sparkle-spinning" />
-            </div>
-            <p className="ai-loading-text">{loadingMsg}</p>
-            <p className="ai-loading-subtext">Isso pode levar alguns segundos enquanto a IA desenha o cardápio ideal...</p>
-          </div>
-        )}
-
-        {!loadingIA && (
-          <div className="planos-split-container">
-            {tempPlan ? (
-              /* INTERFACE DE EDIÇÃO/CONSTRUÇÃO DO PLANO */
-              <div className="plano-editor-wrapper full-width animate-fade-in">
-                <div className="editor-banner">
-                  <Sparkles size={16} />
-                  <span>Você está no <strong>Modo de Edição</strong>. Modifique qualquer uma das refeições abaixo antes de salvar.</span>
-                </div>
-
-                {/* Abas dos Dias da Semana */}
-                <div className="dias-tabs-bar">
-                  {tempPlan.plano_semanal.map(d => (
-                    <button
-                      key={d.dia}
-                      type="button"
-                      className={`dia-tab-btn ${activeDayTab === d.dia ? 'active' : ''}`}
-                      onClick={() => setActiveDayTab(d.dia)}
-                    >
-                      {d.dia}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Refeições do Dia Ativo no Editor */}
-                {tempPlan.plano_semanal.map(d => {
-                  if (d.dia !== activeDayTab) return null;
-                  
-                  const meals = [
-                    { label: "Café da Manhã", key: "cafe_da_manha", icon: <Coffee size={16} /> },
-                    { label: "Lanche da Manhã", key: "lanche_manha", icon: <Clock size={16} /> },
-                    { label: "Almoço", key: "almoco", icon: <Apple size={16} /> },
-                    { label: "Lanche da Tarde", key: "lanche_tarde", icon: <Clock size={16} /> },
-                    { label: "Jantar", key: "jantar", icon: <Coffee size={16} /> }
-                  ];
-
-                  return (
-                    <div key={d.dia} className="meals-editor-grid animate-fade-in">
-                      {meals.map(meal => {
-                        const options = d.refeicoes[meal.key] || ["", "", "", "", ""];
-                        return (
-                          <div key={meal.key} className="meal-editor-card">
-                            <div className="meal-card-header">
-                              {meal.icon}
-                              <span>{meal.label}</span>
-                            </div>
-                            <div className="meal-inputs-list">
-                              {options.map((optionValue, idx) => (
-                                <div key={idx} className="meal-input-row">
-                                  <span className="input-index-label">{idx + 1}</span>
-                                  <input
-                                    type="text"
-                                    className="meal-text-input"
-                                    placeholder={`Alimento / Opção ${idx + 1}...`}
-                                    value={optionValue}
-                                    onChange={e => handleOptionChange(d.dia, meal.key, idx, e.target.value)}
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              /* HISTÓRICO E PRÉ-VISUALIZAÇÃO DE PLANOS ANTERIORES */
-              planosAlimentares.length === 0 ? (
-                <div className="empty-state-placeholder full-width">
-                  <BookOpen size={36} />
-                  <p>Nenhum plano alimentar gerado ainda para este paciente.</p>
-                  <button 
-                    className="btn-save" 
-                    onClick={handleCreateManualPlan} 
-                    style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}
-                  >
-                    <Plus size={16} /> Criar Plano Manual
-                  </button>
-                </div>
-              ) : (
-                <div className="planos-history-layout">
-                  {/* Barra Lateral Esquerda: Lista de Planos Anteriores */}
-                  <div className="planos-history-list">
-                    <h4 className="list-title">Histórico de Planos</h4>
-                    {planosAlimentares.map((p, idx) => {
-                      const isSelected = selectedPlan?.id === p.id;
-                      return (
-                        <button
-                          key={p.id}
-                          className={`plano-history-item ${isSelected ? 'selected' : ''}`}
-                          onClick={() => {
-                            setSelectedPlan(p);
-                            setSelectedPlanTab('Segunda-feira');
-                          }}
-                        >
-                          <div className="plano-date-row">
-                            <Apple size={15} />
-                            <span>Plano #{planosAlimentares.length - idx}</span>
-                          </div>
-                          <span className="plano-timestamp">
-                            Gerado em {new Date(p.created_at).toLocaleDateString('pt-BR')}
-                          </span>
-                          <ChevronRight size={16} className="arrow-icon" />
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Lado Direito: Visualização Completa do Plano Selecionado */}
-                  <div className="plano-content-preview">
-                    {selectedPlan ? (
-                      <div className="plano-display-card">
-                        <div className="preview-header">
-                          <div>
-                            <h3>Plano Alimentar Prescrito</h3>
-                            <span className="date-tag">
-                              Criado em {new Date(selectedPlan.created_at).toLocaleDateString('pt-BR')}
-                            </span>
-                          </div>
-                          <button 
-                            className="btn-secondary btn-sm-edit"
-                            onClick={handleEditSelectedPlan}
-                            style={{ padding: '6px 12px', fontSize: '12px' }}
-                          >
-                            Editar como Novo
-                          </button>
-                        </div>
-
-                        {selectedPlan.conteudo && selectedPlan.conteudo.plano_semanal ? (
-                          /* LAYOUT SEMANAL POR ABAS */
-                          <div className="history-weekly-viewer">
-                            <div className="dias-tabs-bar preview-tabs-bar" style={{ marginTop: '16px' }}>
-                              {selectedPlan.conteudo.plano_semanal.map(d => (
-                                <button
-                                  key={d.dia}
-                                  type="button"
-                                  className={`dia-tab-btn ${selectedPlanTab === d.dia ? 'active' : ''}`}
-                                  onClick={() => setSelectedPlanTab(d.dia)}
-                                >
-                                  {d.dia}
-                                </button>
-                              ))}
-                            </div>
-
-                            {selectedPlan.conteudo.plano_semanal.map(d => {
-                              if (d.dia !== selectedPlanTab) return null;
-
-                              const meals = [
-                                { label: "Café da Manhã", key: "cafe_da_manha", icon: <Coffee size={15} /> },
-                                { label: "Lanche da Manhã", key: "lanche_manha", icon: <Clock size={15} /> },
-                                { label: "Almoço", key: "almoco", icon: <Apple size={15} /> },
-                                { label: "Lanche da Tarde", key: "lanche_tarde", icon: <Clock size={15} /> },
-                                { label: "Jantar", key: "jantar", icon: <Coffee size={15} /> }
-                              ];
-
-                              return (
-                                <div key={d.dia} className="meals-view-list animate-fade-in" style={{ marginTop: '16px' }}>
-                                  {meals.map(meal => {
-                                    const options = d.refeicoes[meal.key] || [];
-                                    return (
-                                      <div key={meal.key} className="meal-view-card">
-                                        <div className="meal-header-row">
-                                          <span className="meal-name-title">{meal.icon} {meal.label}</span>
-                                        </div>
-                                        <div className="meal-content-box">
-                                          {options.length > 0 && options.some(o => o.trim()) ? (
-                                            <ul className="meal-options-bullets">
-                                              {options.map((opt, oIdx) => opt.trim() && (
-                                                <li key={oIdx}>{opt}</li>
-                                              ))}
-                                            </ul>
-                                          ) : (
-                                            <span className="no-items-text">Nenhuma recomendação cadastrada para esta refeição.</span>
-                                          )}
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          /* LAYOUT LEGADO (BACKWARD COMPATIBILITY) */
-                          <div className="meals-view-list" style={{ marginTop: '20px' }}>
-                            {selectedPlan.conteudo && selectedPlan.conteudo.refeicoes && selectedPlan.conteudo.refeicoes.length > 0 ? (
-                              selectedPlan.conteudo.refeicoes.map((meal, index) => (
-                                <div key={index} className="meal-view-card">
-                                  <div className="meal-header-row">
-                                    <span className="meal-name-title"><Coffee size={15} /> {meal.nome}</span>
-                                    <span className="meal-time-badge"><Clock size={13} /> {meal.horario}</span>
-                                  </div>
-                                  <div className="meal-content-box">
-                                    {meal.itens ? (
-                                      <p style={{ whiteSpace: 'pre-wrap' }}>{meal.itens}</p>
-                                    ) : (
-                                      <span className="no-items-text">Nenhum alimento cadastrado.</span>
-                                    )}
-                                  </div>
-                                </div>
-                              ))
-                            ) : (
-                              <div className="empty-state-placeholder">
-                                <p>O plano selecionado não contém refeições cadastradas.</p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="empty-state-placeholder">
-                        <p>Selecione um plano alimentar à esquerda para pré-visualizar.</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )
-            )}
-          </div>
-        )}
+        <PlanoAlimentarIA
+          pacienteData={{
+            nome,
+            idade,
+            sexo,
+            peso: currentPeso,
+            altura,
+            objetivos,
+            objetivo_texto: objetivoTexto,
+            nivel_atividade: nivelAtividade,
+            patologias,
+            patologia_texto: patologiaTexto,
+            restricoes_alimentares: restricoes,
+            restricao_texto: restricaoTexto,
+            alergias,
+            alergia_texto: alergiaTexto,
+            observacoes
+          }}
+          onSavePlan={async (planPayload) => {
+            setSaving(true);
+            try {
+              const { error } = await supabase
+                .from('planos_alimentares')
+                .insert([{ paciente_id: id, conteudo: planPayload }]);
+              if (error) throw error;
+              setSuccessMsg("Plano alimentar salvo no banco de dados com sucesso!");
+              setTimeout(() => setSuccessMsg(''), 4000);
+              await fetchPatientProfile();
+            } catch (err) {
+              console.error(err);
+              setErrorMsg(err.message || "Erro ao salvar plano no banco de dados.");
+            } finally {
+              setSaving(false);
+            }
+          }}
+          saving={saving}
+          planosHistorico={planosAlimentares}
+          onSelectHistoricoPlan={(plan) => setSelectedPlan(plan)}
+        />
       </section>
 
       {/* ── MODAL NOVA CONSULTA ── */}

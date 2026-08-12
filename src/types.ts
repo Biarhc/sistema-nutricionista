@@ -1,18 +1,48 @@
-export interface Refeicoes {
-  cafe_da_manha: string[];
-  lanche_manha: string[];
-  almoco: string[];
-  lanche_tarde: string[];
-  jantar: string[];
+export interface OpcaoRefeicao {
+  id?: string;
+  nome: string;
+  ingredientes: string[];
+  calorias: number;
+  proteinas: number;
+  carboidratos: number;
+  gorduras: number;
+}
+
+export interface RefeicoesDia {
+  cafe_da_manha: OpcaoRefeicao[];
+  lanche_manha: OpcaoRefeicao[];
+  almoco: OpcaoRefeicao[];
+  lanche_tarde: OpcaoRefeicao[];
+  jantar: OpcaoRefeicao[];
 }
 
 export interface DiaPlano {
   dia: string; // 'Segunda-feira', 'Terça-feira', etc.
-  refeicoes: Refeicoes;
+  refeicoes: RefeicoesDia;
+  selecionadas?: {
+    cafe_da_manha?: number;
+    lanche_manha?: number;
+    almoco?: number;
+    lanche_tarde?: number;
+    jantar?: number;
+  };
+  concluidas?: {
+    cafe_da_manha?: boolean;
+    lanche_manha?: boolean;
+    almoco?: boolean;
+    lanche_tarde?: boolean;
+    jantar?: boolean;
+  };
 }
 
 export interface PlanoAlimentarJSON {
   plano_semanal: DiaPlano[];
+  resumo_semanal?: {
+    media_calorias: number;
+    media_proteinas: number;
+    media_carboidratos: number;
+    media_gorduras: number;
+  };
 }
 
 export interface Paciente {
