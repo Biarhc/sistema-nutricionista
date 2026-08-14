@@ -332,7 +332,7 @@ export default function PacienteDetalhes({ session }) {
       setSuccessMsg("Plano alimentar salvo com sucesso!");
       setTimeout(() => setSuccessMsg(''), 4000);
       setTempPlan(null);
-      await fetchPatientProfile();
+      await fetchPatientProfile(true);
     } catch (err) {
       console.error("Erro ao salvar plano:", err);
       setErrorMsg(err.message || "Falha ao salvar plano alimentar.");
@@ -347,8 +347,8 @@ export default function PacienteDetalhes({ session }) {
     }
   }, [session, id]);
 
-  const fetchPatientProfile = async () => {
-    setLoading(true);
+  const fetchPatientProfile = async (silent = false) => {
+    if (!silent) setLoading(true);
     setErrorMsg('');
     try {
       // 1. Fetch Paciente Profile
@@ -528,8 +528,8 @@ export default function PacienteDetalhes({ session }) {
       setSuccessMsg('Consulta registrada com sucesso!');
       setTimeout(() => setSuccessMsg(''), 4000);
 
-      // Re-fetch all to sync graphs and metrics
-      await fetchPatientProfile();
+      // Re-fetch all to sync graphs and metrics (silent: evita reload que desmonta PlanoAlimentarIA)
+      await fetchPatientProfile(true);
 
     } catch (err) {
       setErrorMsg(err.message || 'Erro ao registrar consulta.');
@@ -1186,7 +1186,8 @@ export default function PacienteDetalhes({ session }) {
               if (error) throw error;
               setSuccessMsg("Plano alimentar salvo no banco de dados com sucesso!");
               setTimeout(() => setSuccessMsg(''), 4000);
-              await fetchPatientProfile();
+              // silent=true: evita que loading screen desmonte o PlanoAlimentarIA e resete o currentPlan
+              await fetchPatientProfile(true);
             } catch (err) {
               console.error(err);
               setErrorMsg(err.message || "Erro ao salvar plano no banco de dados.");
